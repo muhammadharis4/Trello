@@ -18,14 +18,15 @@ import { cn } from "@/lib/utils";
 import { Loader } from "@/components/loader";
 import { UserAvatar } from "@/components/user-avatar";
 import Empty from "@/components/empty";
+import { useProModal } from "@/hooks/use-pro-modal";
+import {toast} from "react-hot-toast"
 
 import { formSchema } from "./constants";
 
 const ConversationPage = () => {
   const router = useRouter();
-  const [messages, setMessages] = useState<OpenAI.Chat.ChatCompletionMessage[]>(
-    []
-  );
+  const proModal = useProModal();
+  const [messages, setMessages] = useState<OpenAI.Chat.ChatCompletionMessage[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,7 +52,11 @@ const ConversationPage = () => {
 
       form.reset();
     } catch (error: any) {
-      console.error(error);
+      if (error?.response?.status === 403) {
+        proModal.onOpen();
+      } else {
+        toast.error("Something went wrong.");
+      }
     } finally {
       router.refresh();
     }
